@@ -1,4 +1,4 @@
-# Changing the i2c address of the MCP4728 via Esphome
+# Изменение i2c адреса MCP4728 из Esphome
 
 Проект позволяет читать и изменять I2C‑адрес микросхемы ЦАП MCP4728 через веб‑интерфейс ESPHome или Home Assistant.  
 Разработан для платформы ESP32.
