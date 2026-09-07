@@ -81,6 +81,8 @@ substitutions:
 
 Выполнив изменение адреса первой MCP4728, вы можете перейти к изменению адреса следующих. Для этого вам необходимо подключить управляющий сигнал с LDAC к следующей микросхеме согласно схеме выше. И так далее.
 
-Огромная благодарность @evanc01 и @TrippyLighting за проделанный труд и их работу, основы которых легли в этот код:
-https://github.com/evanc01/MCP4728-Address-Changer
-https://github.com/TrippyLighting/SoftI2cMaster/tree/master 
+## Благодарности
+
+Огромная благодарность коллегам за проделанный труды, основы которых легли в этот код:
+- [evanc01]([https://github.com/evanc01](https://github.com/evanc01/MCP4728-Address-Changer))
+- [TrippyLighting](https://github.com/TrippyLighting/SoftI2cMaster)
