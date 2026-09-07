@@ -83,6 +83,6 @@ substitutions:
 
 ## Благодарности
 
-Огромная благодарность коллегам за проделанный труды, основы которых легли в этот код:
+Огромная благодарность коллегам за проделанные труды, основы которых легли в этот код:
 - [evanc01](https://github.com/evanc01/MCP4728-Address-Changer)
 - [TrippyLighting](https://github.com/TrippyLighting/SoftI2cMaster)
