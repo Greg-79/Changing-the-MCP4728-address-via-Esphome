@@ -1,0 +1,117 @@
+substitutions:
+  sda_pin: "4"
+  scl_pin: "3"
+  ldac_pin: "5"
+
+esphome:
+  name: c3-test
+  friendly_name: c3_test
+  on_boot:
+    - priority: 600
+      then:
+        - lambda: |-
+            init_i2c(${sda_pin}, ${scl_pin}, ${ldac_pin});
+            // Считываем текущий адрес и публикуем в сенсор
+            int current = readAddress(${ldac_pin});
+            char buf[10];
+            sprintf(buf, "0x%02X", 0x60 + current);
+            id(current_address_sensor).publish_state(buf);
+            ESP_LOGI("main", "Current address: %s", buf);
+  includes:
+    - my_components/mcp4728_setter.h
+
+captive_portal:
+
+esp32:
+  variant: esp32c3
+  flash_size: 4MB
+  framework:
+    type: arduino 
+
+logger:
+
+api:
+  encryption:
+    key: "Ro5qUb3rQwgDw9sdPfKV5FM7Hf3DLBOSzTeREFhgKcY="
+
+ota:
+  - platform: esphome
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+  ap:
+    ssid: c3_test Fallback Hotspot
+    password: "YbwcRNKeeGnz"
+
+web_server:
+  port: 80
+  version: 3
+  include_internal: true
+
+# ---------- Текстовый сенсор для отображения адреса ----------
+text_sensor:
+  - platform: template
+    name: "Текущий адрес MCP4728" # Current MCP4728 Address
+    id: current_address_sensor
+
+# ---------- Number для ввода целевого адреса ----------
+number:
+  - platform: template
+    id: address_number
+    name: "Введите адрес в виде 0x6X (0-7)" # Target MCP4728 Address
+    unit_of_measurement: "hex"
+    mode: box
+    step: 1
+    min_value: 0
+    max_value: 7
+    initial_value: 0
+    optimistic: true
+
+# ---------- Кнопки ----------
+button:
+  # Кнопка смены адреса
+  - platform: template
+    name: "Запись адреса MCP4728" # Change MCP4728 Address
+    on_press:
+      then:
+        - lambda: |-
+            int current = readAddress(${ldac_pin});
+            int target = id(address_number).state;
+            ESP_LOGI("button", "Current address: %d (0x%02X)", current, 0x60 + current);
+            ESP_LOGI("button", "Changing to new address: %d (0x%02X)", target, 0x60 + target);
+            change_address(current, target, ${ldac_pin});
+            // Обновляем сенсор новым адресом
+            char buf[10];
+            sprintf(buf, "0x%02X", 0x60 + target);
+            id(current_address_sensor).publish_state(buf);
+            ESP_LOGI("button", "Address change complete. New address: %s", buf);
+
+  # Кнопка для обновления сенсора без изменения адреса
+#  - platform: template
+#    name: "Update Address Display"
+#    on_press:
+#      then:
+#        - lambda: |-
+#            int current = readAddress(${ldac_pin});
+#            char buf[10];
+#            sprintf(buf, "0x%02X", 0x60 + current);
+#            id(current_address_sensor).publish_state(buf);
+#            ESP_LOGI("button", "Display updated: %s", buf);
+
+  # Кнопка диагностики (сырое чтение)
+  - platform: template
+    name: "Чтение адреса"
+    on_press:
+      then:
+        - lambda: |-
+            digitalWrite(${ldac_pin}, HIGH);
+            int ack1 = i2c.start(0B00000000);
+            int ack2 = i2c.ldacwrite(0B00001100, ${ldac_pin});
+            int ack3 = i2c.restart(0B11000001);
+            uint8_t raw = i2c.read(true);
+            i2c.stop();
+            delay(100);
+            digitalWrite(${ldac_pin}, HIGH);
+            uint8_t addr = (raw >> 1) & 0x07;
+            ESP_LOGI("diag", "Raw: 0x%02X, Address: %d (0x%02X)", raw, addr, 0x60 + addr);
